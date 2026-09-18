@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대전 하나 시티즌 전술 분석</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, "Noto Sans KR", sans-serif;
+    background: #10131a;
+    color: white;
+}
+
+header {
+    height: 70px;
+    background: #171b24;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    border-bottom: 1px solid #303642;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.match-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1500px;
+    margin: auto;
+    padding: 20px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    gap: 20px;
+}
+
+/* =========================
+   경기판
+========================= */
+
+.match-board {
+    background: #191e28;
+    border-radius: 14px 14px 0 0;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.home-team {
+    color: #7fd5ff;
+}
+
+.away-team {
+    color: #ff7777;
+}
+
+.vs {
+    color: #aaa;
+}
+
+/* =========================
+   축구장
+========================= */
+
+.pitch {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1.65 / 1;
+    min-height: 620px;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #177b43 0,
+            #177b43 10%,
+            #198548 10%,
+            #198548 20%
+        );
+    border: 5px solid white;
+    overflow: visible;
+}
+
+/* 중앙선 */
+.pitch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 3px;
+    background: rgba(255,255,255,.9);
+}
+
+/* 중앙원 */
+.center-circle {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border: 3px solid white;
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.center-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 페널티 박스 */
+.penalty {
+    position: absolute;
+    width: 18%;
+    height: 46%;
+    top: 27%;
+    border: 3px solid white;
+}
+
+.penalty.left {
+    left: -3px;
+}
+
+.penalty.right {
+    right: -3px;
+}
+
+.goal {
+    position: absolute;
+    width: 5%;
+    height: 18%;
+    top: 41%;
+    border: 3px solid white;
+}
+
+.goal.left {
+    left: -3px;
+}
+
+.goal.right {
+    right: -3px;
+}
+
+/* =========================
+   선수
+========================= */
+
+.player {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border: 3px solid white;
+    user-select: none;
+    transition: transform .1s;
+}
+
+.player:active {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.12);
+}
+
+.home-player {
+    background: #1689d7;
+}
+
+.away-player {
+    background: #d92f3f;
+}
+
+.player.selected {
+    box-shadow:
+        0 0 0 4px #ffd43b,
+        0 0 20px rgba(255,212,59,.8);
+}
+
+/* 선수 이름 */
+.player-name {
+    position: absolute;
+    top: 51px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    background: rgba(0,0,0,.85);
+    padding: 4px 7px;
+    border-radius: 5px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* =========================
+   오른쪽 패널
+========================= */
+
+.panel {
+    background: #191e28;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+select,
+button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 8px;
+    border-radius: 7px;
+    border: none;
+    font-size: 14px;
+}
+
+select {
+    background: #272d39;
+    color: white;
+}
+
+button {
+    background: #2878d8;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3990f0;
+}
+
+.info-box {
+    background: #242a35;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 15px;
+}
+
+.info-box h3 {
+    margin: 0 0 10px 0;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.winrate {
+    margin-top: 20px;
+    text-align: center;
+    background: #202631;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.win-number {
+    font-size: 42px;
+    font-weight: bold;
+    color: #ffd43b;
+}
+
+.list {
+    margin-top: 20px;
+}
+
+.list-item {
+    padding: 7px 9px;
+    margin: 4px 0;
+    background: #252b36;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+@media(max-width: 1000px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .pitch {
+        min-height: 500px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">⚽ 대전 하나 시티즌 전술 분석</div>
+    <div class="match-title">
+        대전 하나 시티즌 VS FC서울
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="layout">
+
+        <!-- =========================
+             왼쪽 경기장
+        ========================== -->
+
+        <div>
+
+            <div class="match-board">
+                <span class="home-team">대전 하나 시티즌</span>
+                <span class="vs">VS</span>
+                <span class="away-team">FC서울</span>
+            </div>
+
+            <div class="pitch" id="pitch">
+
+                <div class="center-circle"></div>
+                <div class="center-dot"></div>
+
+                <div class="penalty left"></div>
+                <div class="penalty right"></div>
+
+                <div class="goal left"></div>
+                <div class="goal right"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             오른쪽 컨트롤
+        ========================== -->
+
+        <div class="panel">
+
+            <h2>⚙️ 전술 설정</h2>
+
+            <label>교체할 선수 선택</label>
+            <select id="playerSelect">
+                <option value="">선수를 선택하세요</option>
+            </select>
+
+            <label style="display:block;margin-top:15px;">
+                투입할 선수
+            </label>
+
+            <select id="replacementSelect">
+                <option value="">교체 선수 선택</option>
+            </select>
+
+            <button onclick="replacePlayer()">
+                🔄 선수 교체
+            </button>
+
+            <button onclick="resetAll()">
+                ↩️ 전술 초기화
+            </button>
+
+            <div class="info-box">
+                <h3>👤 선수 정보</h3>
+                <div id="playerInfo">
+                    선수를 클릭하세요.
+                </div>
+            </div>
+
+            <div class="winrate">
+                <div>예상 승률</div>
+                <div class="win-number" id="winRate">50%</div>
+
+                <div class="stat">
+                    <span>승</span>
+                    <span id="winText">50%</span>
+                </div>
+
+                <div class="stat">
+                    <span>무</span>
+                    <span id="drawText">25%</span>
+                </div>
+
+                <div class="stat">
+                    <span>패</span>
+                    <span id="loseText">25%</span>
+                </div>
+            </div>
+
+            <div class="list">
+                <h3>🔵 대전 현재 선발</h3>
+                <div id="startingList"></div>
+            </div>
+
+            <div class="list">
+                <h3>🪑 대전 교체 명단</h3>
+                <div id="benchList"></div>
+            </div>
+
+            <div class="list">
+                <h3>🔴 FC서울 선발</h3>
+                <div id="seoulList"></div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+/* =====================================================
+   대전 하나 시티즌 36명
+===================================================== */
+
+const daejeonRoster = [
+
+    {number:1, name:"이창근", pos:"GK", rating:78},
+    {number:2, name:"박규현", pos:"DF", rating:73},
+    {number:3, name:"김민덕", pos:"DF", rating:75},
+    {number:4, name:"조성권", pos:"DF", rating:72},
+    {number:5, name:"임종은", pos:"DF", rating:72},
+    {number:6, name:"강윤성", pos:"DF", rating:74},
+    {number:7, name:"마사", pos:"MF", rating:78},
+    {number:8, name:"밥신", pos:"MF", rating:76},
+    {number:9, name:"디오고", pos:"FW", rating:77},
+    {number:10, name:"주민규", pos:"FW", rating:82},
+    {number:11, name:"엄원상", pos:"FW", rating:80},
+    {number:13, name:"김진야", pos:"DF", rating:74},
+    {number:14, name:"김준범", pos:"MF", rating:74},
+    {number:16, name:"이명재", pos:"DF", rating:77},
+    {number:17, name:"루빅손", pos:"MF", rating:78},
+    {number:19, name:"서진수", pos:"FW", rating:74},
+    {number:20, name:"이현식", pos:"MF", rating:76},
+    {number:22, name:"오재석", pos:"DF", rating:72},
+    {number:23, name:"서영재", pos:"DF", rating:73},
+    {number:25, name:"이준서", pos:"GK", rating:70},
+    {number:27, name:"정재희", pos:"FW", rating:76},
+    {number:28, name:"김지호", pos:"FW", rating:70},
+    {number:29, name:"문건호", pos:"MF", rating:70},
+    {number:30, name:"김봉수", pos:"MF", rating:77},
+    {number:31, name:"김민수", pos:"GK", rating:69},
+    {number:33, name:"김문환", pos:"DF", rating:79},
+    {number:37, name:"구훈민", pos:"GK", rating:68},
+    {number:40, name:"이경태", pos:"GK", rating:67},
+    {number:41, name:"박병찬", pos:"FW", rating:69},
+    {number:44, name:"이순민", pos:"MF", rating:76},
+    {number:45, name:"하창래", pos:"DF", rating:78},
+    {number:70, name:"김현욱", pos:"MF", rating:75},
+    {number:77, name:"주앙 빅토르", pos:"FW", rating:77},
+    {number:98, name:"안톤", pos:"DF", rating:76},
+    {number:99, name:"유강현", pos:"FW", rating:73}
+
+];
+
+
+/* =====================================================
+   FC서울 실제 선수 11명
+===================================================== */
+
+const seoulPlayers = [
+
+    {number:25, name:"구성윤", pos:"GK", rating:78},
+
+    {number:22, name:"김진수", pos:"DF", rating:79},
+    {number:37, name:"로스", pos:"DF", rating:77},
+    {number:40, name:"박성훈", pos:"DF", rating:73},
+    {number:16, name:"최준", pos:"DF", rating:76},
+
+    {number:6, name:"바베츠", pos:"MF", rating:78},
+    {number:8, name:"이승모", pos:"MF", rating:75},
+    {number:7, name:"정승원", pos:"MF", rating:79},
+
+    {number:10, name:"안데르손", pos:"MF", rating:79},
+
+    {number:9, name:"클리말라", pos:"FW", rating:81},
+    {number:42, name:"손정범", pos:"FW", rating:72}
+
+];
+
+
+/* =====================================================
+   대전 선발 11명
+===================================================== */
+
+const startingNumbers = [
+    1,
+    33,
+    45,
+    3,
+    16,
+    30,
+    44,
+    20,
+    11,
+    10,
+    7
+];
+
+
+/* =====================================================
+   대전 선수 위치
+===================================================== */
+
+const formationPositions = {
+
+    1:  {x:7,  y:50},
+
+    33: {x:23, y:18},
+    45: {x:23, y:39},
+    3:  {x:23, y:61},
+    16: {x:23, y:82},
+
+    30: {x:43, y:50},
+    44: {x:50, y:30},
+    20: {x:50, y:70},
+
+    11: {x:70, y:20},
+    10: {x:82, y:50},
+    7:  {x:70, y:80}
+
+};
+
+
+/* =====================================================
+   서울 선수 위치
+===================================================== */
+
+const seoulPositions = [
+
+    {x:93, y:50},
+
+    {x:77, y:18},
+    {x:77, y:39},
+    {x:77, y:61},
+    {x:77, y:82},
+
+    {x:57, y:50},
+    {x:50, y:30},
+    {x:50, y:70},
+
+    {x:30, y:20},
+
+    {x:18, y:40},
+    {x:18, y:70}
+
+];
+
+
+/* =====================================================
+   변수
+===================================================== */
+
+let starters = [];
+let bench = [];
+
+let selectedPlayer = null;
+
+let dragging = null;
+
+
+/* =====================================================
+   초기화
+===================================================== */
+
+function initialize() {
+
+    starters = daejeonRoster
+        .filter(p => startingNumbers.includes(p.number))
+        .map(p => ({
+            ...p,
+            x: formationPositions[p.number].x,
+            y: formationPositions[p.number].y
+        }));
+
+    bench = daejeonRoster
+        .filter(p => !startingNumbers.includes(p.number))
+        .map(p => ({...p}));
+
+    renderPlayers();
+
+    updateLists();
+
+    updateReplacementList();
+
+    calculateWinRate();
+}
+
+
+/* =====================================================
+   선수 그리기
+===================================================== */
+
+function renderPlayers() {
+
+    const pitch = document.getElementById("pitch");
+
+    document.querySelectorAll(".player").forEach(el => el.remove());
+
+
+    /* 대전 */
+
+    starters.forEach(player => {
+
+        const element = createPlayerElement(
+            player,
+            "home-player"
+        );
+
+        pitch.appendChild(element);
+
+    });
+
+
+    /* 서울 */
+
+    seoulPlayers.forEach((player, index) => {
+
+        const position = seoulPositions[index];
+
+        const p = {
+            ...player,
+            x: position.x,
+            y: position.y
+        };
+
+        const element = createPlayerElement(
+            p,
+            "away-player"
+        );
+
+        pitch.appendChild(element);
+
+    });
+
+}
+
+
+/* =====================================================
+   선수 HTML 생성
+===================================================== */
+
+function createPlayerElement(player, teamClass) {
+
+    const div = document.createElement("div");
+
+    div.className = "player " + teamClass;
+
+    div.style.left = player.x + "%";
+    div.style.top = player.y + "%";
+
+    div.dataset.number = player.number;
+
+    div.innerHTML = `
+        <span>${player.number}</span>
+        <div class="player-name">
+            ${player.name}
+        </div>
+    `;
+
+    div.addEventListener("mousedown", function(e) {
+
+        e.preventDefault();
+
+        if(teamClass === "home-player") {
+
+            selectedPlayer = player;
+
+            document
+                .querySelectorAll(".player")
+                .forEach(x => x.classList.remove("selected"));
+
+            div.classList.add("selected");
+
+            showPlayerInfo(player);
+
+        }
+
+        dragging = {
+            element: div,
+            player: player
+        };
+
+    });
+
+    return div;
+}
+
+
+/* =====================================================
+   드래그
+===================================================== */
+
+document.addEventListener("mousemove", function(e) {
+
+    if(!dragging) return;
+
+    const pitch = document.getElementById("pitch");
+
+    const rect = pitch.getBoundingClientRect();
+
+    let x = ((e.clientX - rect.left) / rect.width) * 100;
+    let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    x = Math.max(3, Math.min(97, x));
+    y = Math.max(5, Math.min(95, y));
+
+    dragging.player.x = x;
+    dragging.player.y = y;
+
+    dragging.element.style.left = x + "%";
+    dragging.element.style.top = y + "%";
+
+    calculateWinRate();
+
+});
+
+
+document.addEventListener("mouseup", function() {
+
+    dragging = null;
+
+});
+
+
+/* =====================================================
+   선수 정보
+===================================================== */
+
+function showPlayerInfo(player) {
+
+    document.getElementById("playerInfo").innerHTML = `
+
+        <strong>${player.name}</strong><br><br>
+
+        등번호 : ${player.number}<br>
+        포지션 : ${player.pos}<br>
+        능력치 : ${player.rating}
+
+    `;
+
+}
+
+
+/* =====================================================
+   교체 선수 목록
+===================================================== */
+
+function updateReplacementList() {
+
+    const select =
+        document.getElementById("replacementSelect");
+
+    select.innerHTML =
+        `<option value="">교체 선수 선택</option>`;
+
+    bench.forEach(player => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = player.number;
+
+        option.textContent =
+            `${player.number}번 ${player.name} (${player.pos})`;
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* =====================================================
+   현재 선발 선택 목록
+===================================================== */
+
+function updatePlayerSelect() {
+
+    const select =
+        document.getElementById("playerSelect");
+
+    select.innerHTML =
+        `<option value="">선수를 선택하세요</option>`;
+
+    starters.forEach(player => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = player.number;
+
+        option.textContent =
+            `${player.number}번 ${player.name}`;
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* =====================================================
+   선수 교체
+===================================================== */
+
+function replacePlayer() {
+
+    const outgoingNumber =
+        Number(document.getElementById("playerSelect").value);
+
+    const incomingNumber =
+        Number(document.getElementById("replacementSelect").value);
+
+    if(!outgoingNumber || !incomingNumber) {
+
+        alert("교체할 선수와 투입할 선수를 모두 선택하세요.");
+
+        return;
+    }
+
+
+    const outgoingIndex =
+        starters.findIndex(
+            p => p.number === outgoingNumber
+        );
+
+    const incomingIndex =
+        bench.findIndex(
+            p => p.number === incomingNumber
+        );
+
+
+    if(outgoingIndex === -1 || incomingIndex === -1) {
+
+        return;
+    }
+
+
+    const outgoing =
+        starters[outgoingIndex];
+
+    const incoming =
+        bench[incomingIndex];
+
+
+    /* 나가는 선수의 위치를 그대로 받음 */
+
+    const newStarter = {
+        ...incoming,
+        x: outgoing.x,
+        y: outgoing.y
+    };
+
+
+    /* 나간 선수는 벤치 */
+
+    bench[incomingIndex] = {
+        ...outgoing
+    };
+
+
+    starters[outgoingIndex] =
+        newStarter;
+
+
+    selectedPlayer = newStarter;
+
+
+    renderPlayers();
+
+    updateLists();
+
+    updateReplacementList();
+
+    updatePlayerSelect();
+
+    calculateWinRate();
+
+}
+
+
+/* =====================================================
+   목록 표시
+===================================================== */
+
+function updateLists() {
+
+    const startingList =
+        document.getElementById("startingList");
+
+    startingList.innerHTML = "";
+
+    starters.forEach(player => {
+
+        startingList.innerHTML += `
+            <div class="list-item">
+                ${player.number}번 ${player.name}
+                <span style="float:right">
+                    ${player.pos}
+                </span>
+            </div>
+        `;
+
+    });
+
+
+    const benchList =
+        document.getElementById("benchList");
+
+    benchList.innerHTML = "";
+
+    bench.forEach(player => {
+
+        benchList.innerHTML += `
+            <div class="list-item">
+                ${player.number}번 ${player.name}
+            </div>
+        `;
+
+    });
+
+
+    const seoulList =
+        document.getElementById("seoulList");
+
+    seoulList.innerHTML = "";
+
+    seoulPlayers.forEach(player => {
+
+        seoulList.innerHTML += `
+            <div class="list-item">
+                ${player.number}번 ${player.name}
+                <span style="float:right">
+                    ${player.pos}
+                </span>
+            </div>
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   전술 보너스
+===================================================== */
+
+function getTacticalBonus() {
+
+    let bonus = 0;
+
+    starters.forEach(player => {
+
+        const original =
+            formationPositions[player.number];
+
+        if(!original) return;
+
+        const distance =
+            Math.abs(player.x - original.x) +
+            Math.abs(player.y - original.y);
+
+        if(distance < 10) {
+
+            bonus += 0.25;
+
+        }
+
+    });
+
+    return bonus;
+
+}
+
+
+/* =====================================================
+   승률 계산
+===================================================== */
+
+function calculateWinRate() {
+
+    const homeAverage =
+        starters.reduce(
+            (sum, p) => sum + p.rating,
+            0
+        ) / starters.length;
+
+
+    const awayAverage =
+        seoulPlayers.reduce(
+            (sum, p) => sum + p.rating,
+            0
+        ) / seoulPlayers.length;
+
+
+    const tactical =
+        getTacticalBonus();
+
+
+    let homePower =
+        homeAverage + tactical;
+
+
+    let awayPower =
+        awayAverage;
+
+
+    let difference =
+        homePower - awayPower;
+
+
+    let win =
+        50 + difference * 3;
+
+
+    win =
+        Math.max(5, Math.min(90, win));
+
+
+    let draw =
+        25 - Math.abs(difference) * 0.7;
+
+
+    draw =
+        Math.max(10, Math.min(35, draw));
+
+
+    let lose =
+        100 - win - draw;
+
+
+    if(lose < 5) {
+
+        lose = 5;
+
+        draw = 100 - win - lose;
+
+    }
+
+
+    document.getElementById("winRate")
+        .textContent =
+        Math.round(win) + "%";
+
+
+    document.getElementById("winText")
+        .textContent =
+        Math.round(win) + "%";
+
+
+    document.getElementById("drawText")
+        .textContent =
+        Math.round(draw) + "%";
+
+
+    document.getElementById("loseText")
+        .textContent =
+        Math.round(lose) + "%";
+
+}
+
+
+/* =====================================================
+   초기화
+===================================================== */
+
+function resetAll() {
+
+    starters = daejeonRoster
+        .filter(p => startingNumbers.includes(p.number))
+        .map(p => ({
+            ...p,
+            x: formationPositions[p.number].x,
+            y: formationPositions[p.number].y
+        }));
+
+
+    bench = daejeonRoster
+        .filter(p => !startingNumbers.includes(p.number))
+        .map(p => ({...p}));
+
+
+    selectedPlayer = null;
+
+
+    document.getElementById("playerInfo").innerHTML =
+        "선수를 클릭하세요.";
+
+
+    renderPlayers();
+
+    updateLists();
+
+    updateReplacementList();
+
+    updatePlayerSelect();
+
+    calculateWinRate();
+
+}
+
+
+/* =====================================================
+   선발 선택
+===================================================== */
+
+document.getElementById("playerSelect")
+    .addEventListener("change", function() {
+
+        const number = Number(this.value);
+
+        const player =
+            starters.find(
+                p => p.number === number
+            );
+
+        if(player) {
+
+            selectedPlayer = player;
+
+            showPlayerInfo(player);
+
+            document
+                .querySelectorAll(".player")
+                .forEach(el => {
+
+                    el.classList.remove("selected");
+
+                    if(
+                        el.dataset.number ==
+                        player.number
+                    ) {
+                        el.classList.add("selected");
+                    }
+
+                });
+
+        }
+
+    });
+
+
+/* =====================================================
+   실행
+===================================================== */
+
+initialize();
+
+updatePlayerSelect();
+
+</script>
+
+</body>
+</html>
